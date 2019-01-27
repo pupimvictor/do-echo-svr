@@ -4,12 +4,14 @@ package restapi
 
 import (
 	"crypto/tls"
+	"github.com/pupimvictor/do-echo-svr/models"
 	"net/http"
 
-	errors "github.com/go-openapi/errors"
-	runtime "github.com/go-openapi/runtime"
-	middleware "github.com/go-openapi/runtime/middleware"
+	"github.com/go-openapi/errors"
+	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/runtime/middleware"
 
+	"github.com/pupimvictor/do-echo-svr"
 	"github.com/pupimvictor/do-echo-svr/restapi/operations"
 	"github.com/pupimvictor/do-echo-svr/restapi/operations/echo"
 )
@@ -35,7 +37,12 @@ func configureAPI(api *operations.EchoerAPI) http.Handler {
 	api.JSONProducer = runtime.JSONProducer()
 
 	api.EchoEchoHandler = echo.EchoHandlerFunc(func(params echo.EchoParams) middleware.Responder {
-		return middleware.NotImplemented("operation echo.Echo has not yet been implemented")
+		if params.Body != nil {
+			resp := echoer.Echo(params.Body)
+			return echo.NewEchoOK().WithPayload(resp)
+		}
+		errMsg := "please, say something!"
+		return echo.NewEchoDefault(http.StatusBadRequest).WithPayload(&models.Error{Message: &errMsg})
 	})
 
 	api.ServerShutdown = func() {}
