@@ -22,6 +22,15 @@ func configureFlags(api *operations.EchoerAPI) {
 	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
 }
 
+func EchoHandlerFn(params echo.EchoParams) middleware.Responder {
+	if params.Body != nil {
+		resp := echoer.Echo(params.Body)
+		return echo.NewEchoOK().WithPayload(resp)
+	}
+	errMsg := "please, say something!"
+	return echo.NewEchoDefault(http.StatusBadRequest).WithPayload(&models.Error{Message: &errMsg})
+}
+
 func configureAPI(api *operations.EchoerAPI) http.Handler {
 	// configure the api here
 	api.ServeError = errors.ServeError
@@ -36,14 +45,7 @@ func configureAPI(api *operations.EchoerAPI) http.Handler {
 
 	api.JSONProducer = runtime.JSONProducer()
 
-	api.EchoEchoHandler = echo.EchoHandlerFunc(func(params echo.EchoParams) middleware.Responder {
-		if params.Body != nil {
-			resp := echoer.Echo(params.Body)
-			return echo.NewEchoOK().WithPayload(resp)
-		}
-		errMsg := "please, say something!"
-		return echo.NewEchoDefault(http.StatusBadRequest).WithPayload(&models.Error{Message: &errMsg})
-	})
+	api.EchoEchoHandler = echo.EchoHandlerFunc(EchoHandlerFn)
 
 	api.ServerShutdown = func() {}
 
