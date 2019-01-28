@@ -1,6 +1,6 @@
 .PHONY: build serve clean pack deploy ship
 
-TAG?=v0.0.1
+TAG?=v1.0.0
 
 clean:
 	cd ./cmd/echoer-server && rm ./echoer-server
