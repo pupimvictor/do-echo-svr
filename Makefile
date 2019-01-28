@@ -22,6 +22,7 @@ serve:
 
 deploy: build pack upload serve
 
+#https://docs.docker.com/machine/examples/ocean/
 droplet-new:
 	docker-machine create --driver digitalocean --digitalocean-access-token $(do-token) echoer
 
