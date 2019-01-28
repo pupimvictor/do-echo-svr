@@ -4,7 +4,6 @@ package restapi
 
 import (
 	"crypto/tls"
-	"github.com/pupimvictor/do-echo-svr/models"
 	"net/http"
 
 	"github.com/go-openapi/errors"
@@ -22,13 +21,15 @@ func configureFlags(api *operations.EchoerAPI) {
 	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
 }
 
+//EchoHandlerFn is the handler function for the /echo POST request. (See swagger.yml for spec details)
+//It calls echoer.Echo to perform the echo logic
+//It will return a http 400 code in the case of a request without a body
 func EchoHandlerFn(params echo.EchoParams) middleware.Responder {
 	if params.Body != nil {
 		resp := echoer.Echo(params.Body)
 		return echo.NewEchoOK().WithPayload(resp)
 	}
-	errMsg := "please, say something!"
-	return echo.NewEchoDefault(http.StatusBadRequest).WithPayload(&models.Error{Message: &errMsg})
+	return echo.NewEchoDefault(http.StatusBadRequest)
 }
 
 func configureAPI(api *operations.EchoerAPI) http.Handler {
