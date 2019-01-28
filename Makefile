@@ -15,12 +15,12 @@ pack:
 upload:
 	docker push pupimvictor/echoer-server:$(TAG)
 
-ship: clean build pack upload
+ship: build pack upload
 
 serve:
 	docker run -p 8000:8000 pupimvictor/echoer-server:$(TAG)
 
-deploy: clean build pack upload serve
+deploy: build pack upload serve
 
 droplet-new:
 	docker-machine create --driver digitalocean --digitalocean-access-token $(do-token) echoer
