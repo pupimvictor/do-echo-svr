@@ -2,13 +2,13 @@
 
 TAG?=v0.0.1
 
-build:
-	cd ./cmd/echoer-server
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o echoer-server .
-
 clean:
 	cd ./cmd/echoer-server
 	rm ./echoer-server
+
+build:
+	cd ./cmd/echoer-server
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o echoer-server .
 
 pack:
 	docker build -t pupimvictor/echoer-server .
