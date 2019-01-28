@@ -4,18 +4,21 @@ package restapi
 
 import (
 	"crypto/tls"
-	"net/http"
-
-	"github.com/go-openapi/errors"
-	"github.com/go-openapi/runtime"
-	"github.com/go-openapi/runtime/middleware"
-
 	"github.com/pupimvictor/do-echo-svr"
+	"net/http"
+	"os"
+
+	errors "github.com/go-openapi/errors"
+	runtime "github.com/go-openapi/runtime"
+	middleware "github.com/go-openapi/runtime/middleware"
+
 	"github.com/pupimvictor/do-echo-svr/restapi/operations"
 	"github.com/pupimvictor/do-echo-svr/restapi/operations/echo"
+
+	models "github.com/pupimvictor/do-echo-svr/models"
 )
 
-//go:generate swagger generate server --target ../../do-echo-svr --name Echoer --spec ../swagger.yml
+//go:generate swagger generate server --target ../../do-echo-svr --name Echoer --spec ../swagger.yml --principal models.Principal
 
 func configureFlags(api *operations.EchoerAPI) {
 	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
@@ -24,7 +27,7 @@ func configureFlags(api *operations.EchoerAPI) {
 //EchoHandlerFn is the handler function for the /echo POST request. (See swagger.yml for spec details)
 //It calls echoer.Echo to perform the echo logic
 //It will return a http 400 code in the case of a request without a body
-func EchoHandlerFn(params echo.EchoParams) middleware.Responder {
+func EchoHandlerFn(params echo.EchoParams, principal *models.Principal) middleware.Responder {
 	if params.Body != nil {
 		resp := echoer.Echo(params.Body)
 		return echo.NewEchoOK().WithPayload(resp)
@@ -46,6 +49,20 @@ func configureAPI(api *operations.EchoerAPI) http.Handler {
 
 	api.JSONProducer = runtime.JSONProducer()
 
+	// Applies when the "X-Token" header is set
+	api.TokenHeaderAuth = func(token string) (*models.Principal, error) {
+		if token == os.Getenv("API_TOKEN") {
+			prin := models.Principal(token)
+			return &prin, nil
+		}
+		return nil, errors.New(401, "incorrect api key")
+	}
+
+	// Set your custom authorizer if needed. Default one is security.Authorized()
+	// Expected interface runtime.Authorizer
+	//
+	// Example:
+	// api.APIAuthorizer = security.Authorized()
 	api.EchoEchoHandler = echo.EchoHandlerFunc(EchoHandlerFn)
 
 	api.ServerShutdown = func() {}

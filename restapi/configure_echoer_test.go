@@ -62,7 +62,9 @@ func TestEchoEchoHandler(t *testing.T) {
 				},
 			}
 
-			r := api.EchoEchoHandler.Handle(params)
+			var prin models.Principal
+			prin = ""
+			r := api.EchoEchoHandler.Handle(params, &prin)
 			w := httptest.NewRecorder()
 			r.WriteResponse(w, runtime.JSONProducer())
 			if w.Code != 200 {

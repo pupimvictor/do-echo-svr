@@ -18,7 +18,7 @@ upload:
 ship: build pack upload
 
 serve:
-	docker run -p 8000:8000 pupimvictor/echoer-server:$(TAG)
+	docker run -p 8000:8000 --env-file $(ENV) pupimvictor/echoer-server:$(TAG)
 
 deploy: build pack upload serve
 

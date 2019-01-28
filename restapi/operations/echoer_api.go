@@ -20,6 +20,8 @@ import (
 	"github.com/go-openapi/swag"
 
 	"github.com/pupimvictor/do-echo-svr/restapi/operations/echo"
+
+	models "github.com/pupimvictor/do-echo-svr/models"
 )
 
 // NewEchoerAPI creates a new Echoer instance
@@ -39,9 +41,17 @@ func NewEchoerAPI(spec *loads.Document) *EchoerAPI {
 		BearerAuthenticator: security.BearerAuth,
 		JSONConsumer:        runtime.JSONConsumer(),
 		JSONProducer:        runtime.JSONProducer(),
-		EchoEchoHandler: echo.EchoHandlerFunc(func(params echo.EchoParams) middleware.Responder {
+		EchoEchoHandler: echo.EchoHandlerFunc(func(params echo.EchoParams, principal *models.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation EchoEcho has not yet been implemented")
 		}),
+
+		// Applies when the "X-Token" header is set
+		TokenHeaderAuth: func(token string) (*models.Principal, error) {
+			return nil, errors.NotImplemented("api key auth (token_header) X-Token from header param [X-Token] has not yet been implemented")
+		},
+
+		// default authorizer is authorized meaning no requests are blocked
+		APIAuthorizer: security.Authorized(),
 	}
 }
 
@@ -72,6 +82,13 @@ type EchoerAPI struct {
 
 	// JSONProducer registers a producer for a "application/json" mime type
 	JSONProducer runtime.Producer
+
+	// TokenHeaderAuth registers a function that takes a token and returns a principal
+	// it performs authentication based on an api key X-Token provided in the header
+	TokenHeaderAuth func(string) (*models.Principal, error)
+
+	// APIAuthorizer provides access control (ACL/RBAC/ABAC) by providing access to the request and authenticated principal
+	APIAuthorizer runtime.Authorizer
 
 	// EchoEchoHandler sets the operation handler for the echo operation
 	EchoEchoHandler echo.EchoHandler
@@ -138,6 +155,10 @@ func (o *EchoerAPI) Validate() error {
 		unregistered = append(unregistered, "JSONProducer")
 	}
 
+	if o.TokenHeaderAuth == nil {
+		unregistered = append(unregistered, "XTokenAuth")
+	}
+
 	if o.EchoEchoHandler == nil {
 		unregistered = append(unregistered, "echo.EchoHandler")
 	}
@@ -157,14 +178,26 @@ func (o *EchoerAPI) ServeErrorFor(operationID string) func(http.ResponseWriter, 
 // AuthenticatorsFor gets the authenticators for the specified security schemes
 func (o *EchoerAPI) AuthenticatorsFor(schemes map[string]spec.SecurityScheme) map[string]runtime.Authenticator {
 
-	return nil
+	result := make(map[string]runtime.Authenticator)
+	for name, scheme := range schemes {
+		switch name {
+
+		case "token_header":
+
+			result[name] = o.APIKeyAuthenticator(scheme.Name, scheme.In, func(token string) (interface{}, error) {
+				return o.TokenHeaderAuth(token)
+			})
+
+		}
+	}
+	return result
 
 }
 
 // Authorizer returns the registered authorizer
 func (o *EchoerAPI) Authorizer() runtime.Authorizer {
 
-	return nil
+	return o.APIAuthorizer
 
 }
 

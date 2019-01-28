@@ -36,6 +36,11 @@ func init() {
   "paths": {
     "/echo": {
       "post": {
+        "security": [
+          {
+            "token_header": []
+          }
+        ],
         "tags": [
           "echo"
         ],
@@ -100,6 +105,16 @@ func init() {
           "type": "string"
         }
       }
+    },
+    "principal": {
+      "type": "string"
+    }
+  },
+  "securityDefinitions": {
+    "token_header": {
+      "type": "apiKey",
+      "name": "X-Token",
+      "in": "header"
     }
   }
 }`))
@@ -122,6 +137,11 @@ func init() {
   "paths": {
     "/echo": {
       "post": {
+        "security": [
+          {
+            "token_header": []
+          }
+        ],
         "tags": [
           "echo"
         ],
@@ -186,6 +206,16 @@ func init() {
           "type": "string"
         }
       }
+    },
+    "principal": {
+      "type": "string"
+    }
+  },
+  "securityDefinitions": {
+    "token_header": {
+      "type": "apiKey",
+      "name": "X-Token",
+      "in": "header"
     }
   }
 }`))
